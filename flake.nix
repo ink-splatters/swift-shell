@@ -1,5 +1,5 @@
 {
-  description = "basic cpp development shell";
+  description = "basic swift development shell";
 
   outputs = { nixpkgs, flake-utils, self, ... }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -12,18 +12,17 @@
         '';
 
         SWIFTFLAGS = "-mcpu native";
+        inherit (pkgs) swiftPackages;
 
-        mkShell = let
-          inherit (pkgs) swiftPackages mkShell;
-        in
-          mkShell.override { inherit (swiftPackages) stdenv; };
+        mkShell = pkgs.mkShell.override { inherit (swiftPackages) stdenv; };
 
         nativeBuildInputs = with swiftPackages; [
           swift
           swiftpm
           xcodebuild
         ];
-      in {
+      in
+      {
         formatter = pkgs.nixpkgs-fmt;
         devShells = {
           default = mkShell {
@@ -45,21 +44,21 @@
           };
         };
 
-          # TODO: integrate and make working  (cannot pull remote deps)
-          # checks.default = pkgs.stdenv.mkDerivation {
-          #   inherit (self.devShells.${system}.default) nativeBuildInputs hardeningDisable CXXFLAGS;
+        # TODO: integrate and make working  (cannot pull remote deps)
+        # checks.default = pkgs.stdenv.mkDerivation {
+        #   inherit (self.devShells.${system}.default) nativeBuildInputs hardeningDisable CXXFLAGS;
 
-          #   name = "check";
-          #   src = ./checks/swift;
-          #   dontBuild = true;
-          #   doCheck = true;
+        #   name = "check";
+        #   src = ./checks/swift;
+        #   dontBuild = true;
+        #   doCheck = true;
 
-          #   checkPhase = ''
-          #     swift build -c release
-          #   '';
-          #   installPhase = ''
-          #     mkdir "$out"
-          #   '';
-          # };
-        });
+        #   checkPhase = ''
+        #     swift build -c release
+        #   '';
+        #   installPhase = ''
+        #     mkdir "$out"
+        #   '';
+        # };
+      });
 }
