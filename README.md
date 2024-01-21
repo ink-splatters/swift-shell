@@ -21,36 +21,26 @@ EOF
 
 ### Usage
 
-```shell
-nix develop github:ink-splatters/dev-shells#<name> --impure
-```
-
-#### Examples
-
 - enter `swift` shell (contains `swift` and swift package manager) without cloning the repo:
 
 ```shell
-nix develop github:ink-splatters/dev-shells#swift --impure
+nix develop github:ink-splatters/swift-shell --impure
 ```
 
-- enter `cpp` shell, locally:
+- enter `swift` shell with -O3 enabled, locally:
 
 ```shell
-git clone https://github:ink-splatters/dev-shells.git
-cd dev-shells
-nix develop .#cpp
+git clone https://github:ink-splatters/swift-shell.git
+cd swift-shell
+nix develop .#O3
 ```
 
 ### Shell List
 
-- `cpp`
-- `cpp-O3`
-- `swift`
-- `swift-O3`
+- default
+- `O3`
 
 with hardening disabled:
 
-- `cpp-unhardened`
-- `cpp-O3-unhardened`
-- `swift-unhardened`
-- `swift-O3-unhardened`
+- `unhardened`
+- `O3-unhardened`
