@@ -1,6 +1,7 @@
-## Dev Shells
+## Swift Dev Shell
 
-barebone dev shells based on `nix flakes`
+barebone swift dev shell based on `nix flakes`
+contains Swift Package Manager
 
 production ready and much more feature-rich alternative: https://devenv.sh
 
@@ -44,3 +45,17 @@ with hardening disabled:
 
 - `unhardened`
 - `O3-unhardened`
+
+
+### Example program
+
+```shell
+# enter shell
+git clone https://github:ink-splatters/swift-shell.git
+cd swift-shell
+nix develop .#O3
+
+cd checks
+swift run -c release
+```
+
