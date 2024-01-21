@@ -1,7 +1,7 @@
 ## Swift Dev Shell
 
-barebone swift dev shell based on `nix flakes`
-contains Swift Package Manager
+barebone swift dev shell based on `nix flakes`. Contains Swift Package Manager
+
 
 production ready and much more feature-rich alternative: https://devenv.sh
 
