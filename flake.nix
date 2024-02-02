@@ -7,49 +7,51 @@
         pkgs = nixpkgs.legacyPackages.${system};
         hardeningDisable = [ "all" ];
 
-        shellHook = ''
-          export PS1="\n\[\033[01;32m\]\u $\[\033[00m\]\[\033[01;36m\] \w >\[\033[00m\] "
-        '';
 
-        SWIFTFLAGS = "-mcpu native";
-        inherit (pkgs) swiftPackages;
+        mkSh = args: with pkgs; mkShell.override { inherit (llvmPackages_latest) stdenv; }
+          {
 
-        mkShell = pkgs.mkShell.override { inherit (swiftPackages) stdenv; };
+            shellHook = ''
+              export PS1="\n\[\033[01;32m\]\u $\[\033[00m\]\[\033[01;36m\] \w >\[\033[00m\] "
+            '';
 
-        nativeBuildInputs = with swiftPackages; [
-          swift
-          swiftpm
-          xcodebuild
-        ];
+            SWIFTFLAGS = "-mcpu native";
+
+            nativeBuildInputs = with swiftPackages; [
+              swift
+              swiftpm
+              xcodebuild
+
+            ];
+          } // args;
       in
-      {
-        formatter = pkgs.nixpkgs-fmt;
+      with pkgs; {
+        formatter = nixpkgs-fmt;
         devShells = {
-          default = mkShell {
-            inherit SWIFTFLAGS shellHook nativeBuildInputs;
-          };
-
-          O3 = mkShell {
-            inherit shellHook nativeBuildInputs;
+          default = mkSh { };
+          O3 = mkSh {
             SWIFTFLAGS = "${SWIFTFLAGS} -O3";
           };
 
-          unhardened = mkShell {
-            inherit SWIFTFLAGS shellHook nativeBuildInputs hardeningDisable;
+          unhardened = mkSh {
+            inherit hardeningDisable;
           };
 
-          O3-unhardened = mkShell {
-            inherit shellHook nativeBuildInputs hardeningDisable;
+          O3-unhardened = mkSh {
+            inherit hardeningDisable;
             SWIFTFLAGS = "${SWIFTFLAGS} -O3";
           };
         };
 
-        # TODO: integrate and make working  (cannot pull remote deps)
-        # checks.default = pkgs.stdenv.mkDerivation {
-        #   inherit (self.devShells.${system}.default) nativeBuildInputs hardeningDisable CXXFLAGS;
-
+        # TODO: make work
+        # checks.default = let
+        #   shell = self.devShells.${system}.default;
+        #   inherit (shell) stdenv;
+        # in
+        #  stdenv.mkDerivation {
+        #   inherit  (shell) SWIFTFLAGS nativeBuildInputs;
         #   name = "check";
-        #   src = ./checks/swift;
+        #   src = ./checks;
         #   dontBuild = true;
         #   doCheck = true;
 
