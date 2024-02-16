@@ -7,34 +7,29 @@
         pkgs = nixpkgs.legacyPackages.${system};
         hardeningDisable = [ "all" ];
 
-        CFLAGS = pkgs.lib.optionalString ("${system}" == "aarch64-darwin") "-mcpu=apple-m1";
+        CFLAGS = pkgs.lib.optionalString ("${system}" == "aarch64-darwin")
+          "-mcpu=apple-m1";
         CXXFLAGS = CFLAGS;
         SWIFTFLAGS = CXXFLAGS;
 
+        mkShell = with pkgs;
+          if builtins.elem "${system}" [ "x86_64-linux" "aarch64-linux" ] then
+            mkShell.override { inherit (llvmPackages) stdenv; }
+          else
+            pkgs.mkShell;
 
-        mkShell = with pkgs; if builtins.elem "${system}" [ "x86_64-linux" "aarch64-linux" ]
-        then
-          mkShell.override { inherit (llvmPackages) stdenv; }
-        else
-          pkgs.mkShell;
-
-
-        mkSh = args: mkShell
-          {
+        mkSh = args:
+          mkShell {
             inherit CFLAGS CXXFLAGS SWIFTFLAGS;
 
             shellHook = ''
               export PS1="\n\[\033[01;32m\]\u $\[\033[00m\]\[\033[01;36m\] \w >\[\033[00m\] "
             '';
 
-            nativeBuildInputs = with pkgs; [
-              swiftpm
-              xcodebuild
-            ];
+            nativeBuildInputs = with pkgs; [ swiftpm xcodebuild ];
           } // args;
-      in
-      with pkgs; {
-        formatter = nixpkgs-fmt;
+      in with pkgs; {
+        formatter = nixfmt;
         devShells = {
           default = mkSh { };
           O3 = mkSh {
@@ -43,9 +38,7 @@
             SWIFTFLAGS = "${SWIFTFLAGS} -O3";
           };
 
-          unhardened = mkSh {
-            inherit hardeningDisable;
-          };
+          unhardened = mkSh { inherit hardeningDisable; };
 
           O3-unhardened = mkSh {
             inherit hardeningDisable;
