@@ -12,21 +12,16 @@
         CXXFLAGS = CFLAGS;
         SWIFTFLAGS = CXXFLAGS;
 
-        mkShell = with pkgs;
-          if builtins.elem "${system}" [ "x86_64-linux" "aarch64-linux" ] then
-            mkShell.override { inherit (llvmPackages) stdenv; }
-          else
-            pkgs.mkShell;
 
-        mkSh = args:
-          mkShell {
+        mkSh = args: with pkgs;
+          mkShell.override { inherit (swift) stdenv ; } {
             inherit CFLAGS CXXFLAGS SWIFTFLAGS;
 
             shellHook = ''
               export PS1="\n\[\033[01;32m\]\u $\[\033[00m\]\[\033[01;36m\] \w >\[\033[00m\] "
             '';
 
-            nativeBuildInputs = with pkgs; [ swiftpm xcodebuild ];
+            nativeBuildInputs = with pkgs; [ swift swiftpm xcodebuild ];
           } // args;
       in with pkgs; {
         formatter = nixfmt;
