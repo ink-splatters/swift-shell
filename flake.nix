@@ -10,29 +10,43 @@
     ];
   };
 
-  outputs = { nixpkgs, flake-utils, self, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      nixpkgs,
+      flake-utils,
+      self,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         hardeningDisable = [ "all" ];
 
-        CFLAGS = pkgs.lib.optionalString ("${system}" == "aarch64-darwin")
-          "-mcpu=apple-m1";
+        CFLAGS = pkgs.lib.optionalString ("${system}" == "aarch64-darwin") "-mcpu=apple-m1";
         CXXFLAGS = CFLAGS;
         SWIFTFLAGS = CXXFLAGS;
 
-
-        mkSh = args: with pkgs;
-          mkShell.override { inherit (swift) stdenv ; } {
+        mkSh =
+          args:
+          with pkgs;
+          mkShell.override { inherit (swift) stdenv; } {
             inherit CFLAGS CXXFLAGS SWIFTFLAGS;
 
             shellHook = ''
               export PS1="\n\[\033[01;32m\]\u $\[\033[00m\]\[\033[01;36m\] \w >\[\033[00m\] "
             '';
 
-            nativeBuildInputs = with pkgs; [ swift swiftpm xcodebuild ];
-          } // args;
-      in with pkgs; {
+            nativeBuildInputs = with pkgs; [
+              swift
+              swiftpm
+              xcodebuild
+            ];
+          }
+          // args;
+      in
+      with pkgs;
+      {
         formatter = pkgs.nixfmt-rfc-style;
         devShells = {
           default = mkSh { };
@@ -71,5 +85,6 @@
         #     mkdir "$out"
         #   '';
         # };
-      });
+      }
+    );
 }
