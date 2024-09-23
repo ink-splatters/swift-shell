@@ -1,6 +1,15 @@
 {
   description = "basic swift development shell";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://aarch64-darwin.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "aarch64-darwin.cachix.org-1:mEz8A1jcJveehs/ZbZUEjXZ65Aukk9bg2kmb0zL9XDA="
+    ];
+  };
+
   outputs = { nixpkgs, flake-utils, self, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
@@ -24,7 +33,7 @@
             nativeBuildInputs = with pkgs; [ swift swiftpm xcodebuild ];
           } // args;
       in with pkgs; {
-        formatter = nixfmt;
+        formatter = pkgs.nixfmt-rfc-style;
         devShells = {
           default = mkSh { };
           O3 = mkSh {
