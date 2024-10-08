@@ -1,6 +1,6 @@
 {
-  description = "basic swift development shell";
-  
+  description = "basic cpp development shell";
+
   inputs = {
     systems.url = "github:nix-systems/default";
 
@@ -18,12 +18,8 @@
   };
 
   nixConfig = {
-    extra-substituters = [
-      "https://aarch64-darwin.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "aarch64-darwin.cachix.org-1:mEz8A1jcJveehs/ZbZUEjXZ65Aukk9bg2kmb0zL9XDA="
-    ];
+    extra-substituters = "https://cachix.cachix.org";
+    extra-trusted-public-keys = "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM=";
   };
 
   outputs =
@@ -31,6 +27,7 @@
       nixpkgs,
       flake-utils,
       git-hooks,
+      self,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -39,16 +36,14 @@
         pkgs = nixpkgs.legacyPackages.${system};
 
         inherit (pkgs) callPackage;
-        pre-commit-check = callPackage ./nix/pre-commit-check.nix { inherit git-hooks system; };
       in
       {
-        checks = {
-          inherit pre-commit-check;
-        };
+
+        checks.pre-commit-check = callPackage ./nix/pre-commit-check.nix { inherit git-hooks system; };
 
         formatter = pkgs.nixfmt-rfc-style;
 
-        devShells = callPackage ./nix/shells.nix { inherit pre-commit-check; };
+        devShells = callPackage ./nix/shells.nix { inherit (self.checks.${system}) pre-commit-check; };
       }
     );
 }
