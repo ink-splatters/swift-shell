@@ -48,16 +48,28 @@
           meta.description = "install pre-commit hooks";
         };
 
-        devShells.default = pkgs.mkShell.override { inherit (pkgs.swiftPackages) stdenv; } {
+        devShells.default =
+          let
+            inherit (pkgs) swiftPackages;
+          in
+          pkgs.mkShell.override { inherit (swiftPackages) stdenv; } {
 
-          nativeBuildInputs = [
-            pkgs.swift
-            pkgs.swiftpm
-            pkgs.swiftpm2nix
+            buildInputs = with swiftPackages; [
+              Dispatch
+              Foundation
+              XCTest
+            ];
 
-          ];
-          inherit (pre-commit-check) shellHook;
-        };
+            nativeBuildInputs = with swiftPackages; [
+              sourcekit-lsp
+              swift-docc
+              swift-format
+              swift
+              swiftpm
+              swiftpm2nix
+            ];
+            inherit (pre-commit-check) shellHook;
+          };
 
         formatter = pkgs.nixfmt-rfc-style;
       }
