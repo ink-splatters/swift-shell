@@ -1,77 +1,39 @@
 {
   inputs = {
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+
     systems.url = "github:nix-systems/default";
-    flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     flake-utils.inputs.systems.follows = "systems";
 
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
-      inputs = {
-        flake-compat.follows = "flake-compat";
-        nixpkgs.follows = "nixpkgs";
-        # nixpkgs-stable.follows = "nixpkgs";
-      };
+      inputs = { nixpkgs.follows = "nixpkgs"; };
     };
+    flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
 
-  outputs =
-    {
-      flake-utils,
-      nixpkgs,
-      git-hooks,
-      ...
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
+  nixConfig = {
+    extra-substituters = [ "https://pre-commit-hooks.cachix.org" ];
+    extra-trusted-public-keys = [
+      "aarch64-darwin.cachix.org-1:mEz8A1jcJveehs/ZbZUEjXZ65Aukk9bg2kmb0zL9XDA="
+      "pre-commit-hooks.cachix.org-1:Pkk3Panw5AW24TOv6kz3PvLhlH8puAsJTBbOPmBo7Rc="
+    ];
+  };
+
+  outputs = { flake-utils, nixpkgs, git-hooks, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        pre-commit-check = pkgs.callPackage ./pre-commit-check.nix {
+        pre-commit = pkgs.callPackage ./nix/pre-commit.nix {
           inherit git-hooks system;
           src = ./.;
         };
-      in
-      {
+      in {
+        checks = { inherit (pre-commit) check; };
 
-        checks = {
-          inherit pre-commit-check;
-        };
+        apps = { inherit (pre-commit) install-hooks; };
 
-        apps.install-hooks = {
-          type = "app";
-          program = toString (
-            pkgs.writeShellScript "install-hooks" ''
-              ${pre-commit-check.shellHook}
-              echo Done!
-            ''
-          );
-          meta.description = "install pre-commit hooks";
-        };
-
-        devShells.default =
-          let
-            inherit (pkgs) swiftPackages;
-          in
-          pkgs.mkShell.override { inherit (swiftPackages) stdenv; } {
-
-            buildInputs = with swiftPackages; [
-              Dispatch
-              Foundation
-              XCTest
-            ];
-
-            nativeBuildInputs = with swiftPackages; [
-              sourcekit-lsp
-              swift-docc
-              swift-format
-              swift
-              swiftpm
-              swiftpm2nix
-            ];
-            inherit (pre-commit-check) shellHook;
-          };
-
-        formatter = pkgs.nixfmt-rfc-style;
-      }
-    );
+        formatter = pkgs.nixfmt-classic;
+        devShells.default = pkgs.callPackage ./nix/dev-shell.nix { };
+      });
 }
