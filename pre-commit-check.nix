@@ -1,10 +1,4 @@
-{
-  pkgs,
-  git-hooks,
-  src,
-  system,
-  ...
-}:
+{ pkgs, git-hooks, src, system, ... }:
 git-hooks.lib.${system}.run {
   inherit src;
 
