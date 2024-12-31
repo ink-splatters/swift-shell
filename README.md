@@ -1,51 +1,66 @@
-## Nix development shell for Swift
+# Nix development shell for Swift
 
-<details>
-<summary>Ensure `flakes` support is enabled</summary>
+Requires nix [flakes](https://nixos.wiki/wiki/Flakes) support.
 
-if not done yet, add:
-
-```nix
-experimental-features = nix-command flakes
-```
-
-to your `nix.conf`<sup>1</sup>.
-
-Alternatively, you may pass `--experimental-features` CLI argument
-to `nix` invocations below.
-
---
-<sup>1></sup> either to `/etc/nix/nix.conf` or to `~/.config/nix/nix.conf`.
-for NixOS, see the corresponding manual.
-
-</details>
-
-### Usage
+## Usage
 
 ```shell
-nix  develop github:ink-splatters/swift-shell
+nix develop github:ink-splatters/swift-shell
 ```
 
-### Development
+## Development
+
+### direnv
+
+It's recommended to install `direnv`:
+
+```sh
+nix profile install nixpkgs#direnv
+```
+
+#### POSIX shell integration
+
+```sh
+shell_name=$(basename $SHELL)
+[[ $shell_name == "bash" ]] && rc=~/.bashrc
+[[ $shell_name == "zsh" ]] && rc=~/.zshrc
+
+cat <<'EOF' >> $rc
+
+# direnv shell integration
+eval "$(direnv hook $SHELL)"
+EOF
+source $rc
+```
+
+#### fish support
+
+install the integration support via `fisher`:
+
+```fish
+fisher install halostatue/fish-direnv@v1.x
+```
+
+then reload your shell configuration.
+
+### Enter development environment
 
 ```sh
 nix run .#install-hooks
-nix run nixpkgs#direnv -- allow # or `nix develop` if you don't want to use `direnv`
+direnv allow .
+nix develop
 ```
 
-any changes to `git-hooks` configuration must be followed by running `nix run .#install-hooks`
+NOTE: any changes to `git-hooks` configuration must be followed by running `nix run .#install-hooks`
 
 ### SwiftPM
 
+If you want to package your SwiftPM project with `nix`, you should use `swiftpm2nix` 
+for vendoring dependencies.
+
 See [Packaging with SwiftPM](https://nixos.org/manual/nixpkgs/stable/#ssec-swift-packaging-with-swiftpm)
-
-TL;DR
-
-if you want to package your swift-written software using `nix`, it's good to know
-that you cannot use `swift package resolve` directly, instead the recommended way
-is using `swiftpm2nix` for vendoring your SwiftPM dependencies.
 
 ### Availability of XCTest
 
-`XCTest` uses Obj-C runtime which is not part of opensource swift and cannot be shiped with `nix`.
-Use swift `Testing` to be able to run tests via `nix check`
+`XCTest` uses Obj-C runtime which is not part of opensource swift and cannot be shiped with `nix`, therefore
+it's recommended to use swift `Testing` instead.
